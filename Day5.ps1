@@ -22,7 +22,6 @@ foreach ($line in $Stack) {
     }
 }
 
-
 Function MoveCrate {
     param(
         $from,
