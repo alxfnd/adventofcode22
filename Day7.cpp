@@ -77,11 +77,30 @@ int Directory::GetChild(string name)
 
 void Directory::CalculateSize()
 {
+    /*
+    if (this->name == "/") {
     this->size = 0;
     if (_subdirs.size() != 0) {
         for (int i = 0; i < _subdirs.size(); i++) {
             _subdirs[i]->CalculateSize();
-            this->size += _subdirs[0]->size;
+            cout << this->name << this->id << endl << "DIR: " << _subdirs[i]->name << endl << _subdirs[i]->size << endl << endl;
+            this->size += _subdirs[i]->size;
+            cout << this->size << " so far.." << endl << endl;
+        }
+    }
+    if (_files.size() != 0) {
+        for (int i = 0; i < _files.size(); i++) {
+            cout << this->name << this->id << endl << "File: " <<_files[i]->name << endl << _files[i]->size << endl << endl;
+            this->size += _files[i]->size;
+        }
+    }
+    cout << this->size << endl << endl;
+    }else{*/
+        this->size = 0;
+    if (_subdirs.size() != 0) {
+        for (int i = 0; i < _subdirs.size(); i++) {
+            _subdirs[i]->CalculateSize();
+            this->size += _subdirs[i]->size;
         }
     }
     if (_files.size() != 0) {
@@ -89,13 +108,16 @@ void Directory::CalculateSize()
             this->size += _files[i]->size;
         }
     }
+    //}
 }
 
 int Directory::output()
 {
     int result = 0;
+    //cout << this->name << endl << this->size << endl;
     if (this->GetDirs() == 0) {
         if (this->size <= 100000) {
+            cout << this->name << endl << this->size << endl;
             result += this->size;
         }
         return result;
@@ -105,8 +127,10 @@ int Directory::output()
     }
     if (this->size <= 100000) {
         result += this->size;
+        cout << this->name << endl << this->size << endl;
         return result;
     }else{
+        //cout << endl << endl << "special: " << result << endl << endl;
         return result;
     }
 }
@@ -220,8 +244,8 @@ void Processor(string line, Explorer& Explorer, vector<Directory*>& AllDirectori
         newfile->name = wholeline[1];
         newfile->size = stoi(wholeline[0]);
         CD->AddFile(newfile);
-        cout << "Directory name: " <<  SearchDirectories(AllDirectories, Explorer.currentdirectory)->name << endl;
-        cout << "Current Dir id is: " << SearchDirectories(AllDirectories,  Explorer.currentdirectory)->id << endl;
+        //cout << "Directory name: " <<  SearchDirectories(AllDirectories, Explorer.currentdirectory)->name << endl;
+        //cout << "Current Dir id is: " << SearchDirectories(AllDirectories,  Explorer.currentdirectory)->id << endl;
         cout << newfile->name << endl << newfile->size << endl << endl;
     }
 }
@@ -241,8 +265,9 @@ int main ()
     while (getline(Advent, cur_line)) {
         count++;
         Processor(cur_line, Explorer, AllDirectories, count);
-        AllDirectories[0]->CalculateSize();
+        
     }
+    AllDirectories[0]->CalculateSize();
     cout << AllDirectories[0]->output();
     return 0;
 }
