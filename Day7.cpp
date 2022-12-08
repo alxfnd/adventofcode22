@@ -9,84 +9,40 @@ using namespace std;
 struct File
 {
     string name;
-    long size;
+    int size;
 };
 
 class Directory
 {
     private:
-        string _parentdirectory;
+        
+        int parentdirectory;
         vector<Directory*> _subdirs;
         vector<File*> _files;
     public:
+        int id;
         string name;
-        long size = 0;
-        void AddDirectory(Directory* Directory, string currentdir);
+        int size = 0;
+        void AddDirectory(Directory* Directory);
         void AddFile(File* File);
         int GetFiles();
         int GetDirs();
+        int GetParent();
+        int GetChild(string name);
         void CalculateSize();
-        string GetParent();
-        long output();
-        Directory(string name);
+        int output();
+        Directory(string name, int id, int parent);
 };
 
-long Directory::output()
+Directory::Directory(string name, int id, int parent)
 {
-    long result = 0;
-    if (this->GetDirs() == 0) {
-        if (this->size <= 100000) {
-            result += this->size;
-        }
-        return result;
-    }
-    for (int i = 0; i < _subdirs.size(); i++) {
-        result += _subdirs[i]->output();
-    }
-    if (this->size <= 100000) {
-        result += this->size;
-        return result;
-    }else{
-        return result;
-    }
-}
-
-/*
-vector<Directory*>& Directory::output()
-{
-    vector<Directory*> UnderPar;
-    if (this->GetDirs() == 0) {
-        return UnderPar;
-    }
-    for (int i = 0; i < _subdirs.size(); i++) {
-        vector<Directory*> curdir = _subdirs[i]->output();
-        if (curdir.size() != 0) {
-            for (int c = 0; c <= curdir.size(); c++) {
-                if (curdir[c]->size <= 100000) {
-                    cout << UnderPar.size();
-                    UnderPar.push_back(curdir[c]);
-                }
-            }
-        }
-        //cout << _subdirs[i]->name << endl << _subdirs[i]->size << endl;
-        //cout << _files[i]->name << endl << _files[i]->size << endl;
-    }
-    //for (int i = 0; i < UnderPar.size(); i++) {
-    //    totalsize += UnderPar[i]->output()
-    //}
-    
-    return UnderPar&;
-}
-*/
-
-Directory::Directory(string name)
-{
+    this->id = id;
     this->name = name;
+    this->parentdirectory = parent;
 }
 
-void Directory::AddDirectory(Directory* Directory, string currentdir)
+void Directory::AddDirectory(Directory* Directory)
 {
-    Directory->_parentdirectory = currentdir;
     _subdirs.push_back(Directory);
 }
 
@@ -105,6 +61,20 @@ int Directory::GetDirs()
     return _subdirs.size();
 }
 
+int Directory::GetParent()
+{
+    return parentdirectory;
+}
+
+int Directory::GetChild(string name)
+{
+    for (int i = 0; i < _subdirs.size(); i++) {
+        if (_subdirs[i]->name == name) {
+            return _subdirs[i]->id;
+        }
+    }
+}
+
 void Directory::CalculateSize()
 {
     this->size = 0;
@@ -121,38 +91,46 @@ void Directory::CalculateSize()
     }
 }
 
-string Directory::GetParent()
+int Directory::output()
 {
-    return _parentdirectory;
+    int result = 0;
+    if (this->GetDirs() == 0) {
+        if (this->size <= 100000) {
+            result += this->size;
+        }
+        return result;
+    }
+    for (int i = 0; i < _subdirs.size(); i++) {
+        result += _subdirs[i]->output();
+    }
+    if (this->size <= 100000) {
+        result += this->size;
+        return result;
+    }else{
+        return result;
+    }
 }
 
 class Explorer
 {
-    private:
-    string currentdirectory;
     public:
-    void SetDirectory(string input);
-    string GetDirectory();
-    string Command(string command, string input, Directory* PWD);
-    Explorer(string directory);
+        int currentdirectory;
+        Explorer(int directory);
+        int Command(string command, string input, Directory* PWD);
+        void SetDirectory(int input);
 };
 
-Explorer::Explorer(string directory)
+Explorer::Explorer(int directory)
 {
     this->currentdirectory = directory;
 }
 
-void Explorer::SetDirectory(string input)
+void Explorer::SetDirectory(int input)
 {
     this->currentdirectory = input;
 }
 
-string Explorer::GetDirectory()
-{
-    return currentdirectory;
-}
-
-string Explorer::Command(string command, string input, Directory* PWD)
+int Explorer::Command(string command, string input, Directory* PWD)
 {
     /*
     Two possible commands:
@@ -176,8 +154,7 @@ string Explorer::Command(string command, string input, Directory* PWD)
    {
     case 0:
         // enter a directory
-        //cout << "Input is cd" << endl;
-        return input;
+        return PWD->GetChild(input);
         break;
     case 1:
         // go up a directory
@@ -189,22 +166,20 @@ string Explorer::Command(string command, string input, Directory* PWD)
         cout << "Input is ls" << endl;
         break;
    }
-   return "null";
+   return 0;
 }
 
-// this function isn't the problem (the part where it compares the name)
-// seems the issue is that the directory name isn't getting set correctly and it can't be called
-Directory* SearchDirectories(vector<Directory*>& AllDirectories, string Directory)
+Directory* SearchDirectories(vector<Directory*>& AllDirectories, int Directory)
 {
     for (int i = 0; i < AllDirectories.size(); i++) {
-        if (AllDirectories[i]->name == Directory) {
+        if (AllDirectories[i]->id == Directory) {
             return AllDirectories[i];
         }
     }
     return AllDirectories[0];
 }
 
-void Processor(string line, Explorer& Explorer, vector<Directory*>& AllDirectories) {
+void Processor(string line, Explorer& Explorer, vector<Directory*>& AllDirectories, int count) {
     int a = (char)line[0];
     string word;
     stringstream ss(line);
@@ -218,82 +193,56 @@ void Processor(string line, Explorer& Explorer, vector<Directory*>& AllDirectori
         case 36:
             if (wholeline.size() == 3) {
                 Explorer.SetDirectory(
-                    Explorer.Command(wholeline[1], wholeline[2], SearchDirectories(AllDirectories, Explorer.GetDirectory()))
+                    Explorer.Command(wholeline[1], wholeline[2], SearchDirectories(AllDirectories, Explorer.currentdirectory))
                 );
-                if (SearchDirectories(AllDirectories, wholeline[2])->name != wholeline[2]) {
-                    AllDirectories.push_back(new Directory(wholeline[2]));
-                }
-            }else{
-                break;
-                //Explorer.Command(wholeline[1], "null", AllDirectories);
             }
             break;
-        //dir = new directory
         case 100:
             //cout << "here it is: " <<Explorer.GetDirectory() << endl;
-            Directory* CD = SearchDirectories(AllDirectories, Explorer.GetDirectory());
-            Directory* newsubdir = new Directory(wholeline[1]);
+            Directory* CD = SearchDirectories(AllDirectories, Explorer.currentdirectory);
+            Directory* newsubdir = new Directory(wholeline[1], count, Explorer.currentdirectory);
             AllDirectories.push_back(newsubdir);
-            CD->AddDirectory(newsubdir, Explorer.GetDirectory());
+            CD->AddDirectory(newsubdir);
+            
+            cout << "Directory name: " << SearchDirectories(AllDirectories, Explorer.currentdirectory)->name << endl;
+            cout << "Current Dir id is: " << SearchDirectories(AllDirectories, Explorer.currentdirectory)->id << endl;
+            cout << "New dir is: " << newsubdir->name << endl;
+            cout << "Id is: " << newsubdir->id << endl;
+            cout << "Directory parent: " << SearchDirectories(AllDirectories, (SearchDirectories(AllDirectories, Explorer.currentdirectory)->GetParent()))->name << endl << endl;
             break;
         //else must be an int = new file
     }
     // adding a third case statement was breaking the switch, so now I added an if at the end
     // lazy, I know
     if (!(a == 36 || a == 100)) {
-        Directory* CD = SearchDirectories(AllDirectories, Explorer.GetDirectory());
+        Directory* CD = SearchDirectories(AllDirectories, Explorer.currentdirectory);
         File* newfile = new File;
         newfile->name = wholeline[1];
-        newfile->size = stol(wholeline[0]);
+        newfile->size = stoi(wholeline[0]);
         CD->AddFile(newfile);
-        //cout << newfile->size << endl;
+        cout << "Directory name: " <<  SearchDirectories(AllDirectories, Explorer.currentdirectory)->name << endl;
+        cout << "Current Dir id is: " << SearchDirectories(AllDirectories,  Explorer.currentdirectory)->id << endl;
+        cout << newfile->name << endl << newfile->size << endl << endl;
     }
 }
 
+
+
 int main () 
 {
-    
     string currentdirectory = "null";
-    Explorer Explorer(currentdirectory);
-    //string input = "$ cd /";
+    int count = 0;
+    Explorer Explorer(count);
     vector<Directory*> AllDirectories;
-    AllDirectories.push_back(new Directory("/"));
-    /*
-    Processor(input, Explorer, AllDirectories);
-    cout << Explorer.GetDirectory() << endl;
-    input = "dir abcde";
-    Processor(input, Explorer, AllDirectories);
-    //input = "$ cd abcde";
-    //Processor(input, Explorer, AllDirectories);
-    cout << "marker" << endl << AllDirectories[1]->GetParent();// << AllDirectories[1]->name;
-    //Explorer.Command(input, input);
-    */
-    // This is what it will actually be - above is for testing
-    
+    AllDirectories.push_back(new Directory("/", 0, -1));
     fstream Advent(".\\Day7.txt", ios::in | ios::out);
     string cur_line;
-    while (getline(Advent, cur_line)) {
-        //cout << cur_line << endl;
-        Processor(cur_line, Explorer, AllDirectories);
-        AllDirectories[0]->CalculateSize();
-        //cout << "Current dirs = " << AllDirectories[0]->GetDirs() << endl;
-        //cout << "Current files = " << AllDirectories[0]->GetFiles() << endl;
-        //cout << "Current total = " << AllDirectories[0]->size << endl;
-    }
     
-    /*
-    //long totalsize;
-    //vector<Directory*> list = AllDirectories[0]->output();
-    for (int i= 0; i < list.size(); i++) {
-        totalsize += list[i]->size;
-        cout << list[i]->name << endl;
+    while (getline(Advent, cur_line)) {
+        count++;
+        Processor(cur_line, Explorer, AllDirectories, count);
+        AllDirectories[0]->CalculateSize();
     }
-    cout << totalsize;
-    //for (int i = 0; i < )
-    */
     cout << AllDirectories[0]->output();
-
-
-
     return 0;
 }
