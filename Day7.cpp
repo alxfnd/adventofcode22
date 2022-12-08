@@ -8,7 +8,6 @@ using namespace std;
 
 struct File
 {
-    string parentdir;
     string name;
     long size;
 };
@@ -17,28 +16,53 @@ class Directory
 {
     private:
         string _parentdirectory;
-        vector<Directory> _subdirs;
+        vector<Directory*> _subdirs;
+        vector<File*> _files;
     public:
         string name;
         long size;
         void SetParent(string name);
-        void AddDirectory(Directory Directory);
+        void AddDirectory(Directory* Directory, string currentdir);
+        void AddFile(File* File);
+        void CalculateSize();
+        string GetParent();
         Directory(string name);
 };
 
 Directory::Directory(string name)
 {
-    name = name;
+    this->name = name;
 }
 void Directory::SetParent(string name) 
 {
-    _parentdirectory = name;
+    this->_parentdirectory = name;
 }
 
-void Directory::AddDirectory(Directory Directory)
+void Directory::AddDirectory(Directory* Directory, string currentdir)
 {
     _subdirs.push_back(Directory);
-    Directory.SetParent(name);
+    Directory->SetParent(currentdir);
+}
+
+void Directory::AddFile(File* File)
+{
+    this->_files.push_back(File);
+}
+
+void Directory::CalculateSize()
+{
+    // this will be a recursive function that iterates
+    // through all subdirs and sums the total file sizes
+    // adding the total to the current file size
+
+    // in the solution part, I'll add size
+    // to an array, sort it, and count
+    // total under X amount
+}
+
+string Directory::GetParent()
+{
+    return _parentdirectory;
 }
 
 class Explorer
@@ -54,13 +78,12 @@ class Explorer
 
 Explorer::Explorer(string directory)
 {
-    currentdirectory = directory;
+    this->currentdirectory = directory;
 }
 
 void Explorer::SetDirectory(string input)
 {
-    cout << input << endl;
-    currentdirectory = input;
+    this->currentdirectory = input;
 }
 
 string Explorer::GetDirectory()
@@ -108,25 +131,18 @@ string Explorer::Command(string command, string input)
 
 // this function isn't the problem (the part where it compares the name)
 // seems the issue is that the directory name isn't getting set correctly and it can't be called
-bool SearchDirectories(vector<Directory*>& AllDirectories, string Directory)
+Directory* SearchDirectories(vector<Directory*>& AllDirectories, string Directory)
 {
-    if (AllDirectories.size() == 0) {
-        return false;
-    }
-    cout << "here";
-    int b = 0;
-    cout << AllDirectories[b]->name.size();
-    for (int i = 0; i <= AllDirectories.size(); i++) {
-        if (AllDirectories[i]->name.size() == Directory.size()) {
-            return true;
+    for (int i = 0; i < AllDirectories.size(); i++) {
+        if (AllDirectories[i]->name == Directory) {
+            return AllDirectories[i];
         }
     }
-    return false;
+    return AllDirectories[0];
 }
 
 void Processor(string line, Explorer& Explorer, vector<Directory*>& AllDirectories) {
     char a = line[0];
-    //cout << type_info(line[0]);
     string word;
     stringstream ss(line);
     vector<string> wholeline;
@@ -141,7 +157,7 @@ void Processor(string line, Explorer& Explorer, vector<Directory*>& AllDirectori
                 Explorer.SetDirectory(
                     Explorer.Command(wholeline[1], wholeline[2])
                 );
-                if (! SearchDirectories(AllDirectories, wholeline[2])) {
+                if (SearchDirectories(AllDirectories, wholeline[2])->name != wholeline[2]) {
                     AllDirectories.push_back(new Directory(wholeline[2]));
                 }
             }else{
@@ -150,10 +166,21 @@ void Processor(string line, Explorer& Explorer, vector<Directory*>& AllDirectori
             break;
         //dir = new directory
         case 100:
+            Directory* CD = SearchDirectories(AllDirectories, Explorer.GetDirectory());
+            Directory* newsubdir = new Directory(wholeline[1]);
+            AllDirectories.push_back(newsubdir);
+            CD->AddDirectory(newsubdir, Explorer.GetDirectory());
             break;
         //else must be an int = new file
-        default:
-            break;
+    }
+    // adding a third case statement was breaking the switch, so now I added an if at the end
+    // lazy I know
+    if (a < 10) {
+        Directory* CD = SearchDirectories(AllDirectories, Explorer.GetDirectory());
+        File* newfile = new File;
+        newfile->name = wholeline[1];
+        newfile->size = stol(wholeline[0]);
+        CD->AddFile(newfile);
     }
 }
 
@@ -163,11 +190,12 @@ int main ()
     Explorer Explorer(currentdirectory);
     string input = "$ cd /";
     vector<Directory*> AllDirectories;
+    AllDirectories.push_back(new Directory("/"));
     Processor(input, Explorer, AllDirectories);
-    cout << Explorer.GetDirectory() << endl << AllDirectories.size() << endl;
-    input = "$ cd abc";
-    //Processor(input, Explorer, AllDirectories);
-    cout << "Dir changed" << endl << Explorer.GetDirectory() << endl << AllDirectories[0]->name;
+    cout << Explorer.GetDirectory() << endl;
+    input = "$ cd abcde";
+    Processor(input, Explorer, AllDirectories);
+    cout << "Dir changed" << endl << AllDirectories[1]->GetParent() << AllDirectories[1]->name;
     //Explorer.Command(input, input);
     return 0;
 }
