@@ -86,6 +86,7 @@ void Grid::UpdateTails()
         scany++;
     }
     if (inrange == true) {
+        this->Grid[taily][tailx] = 2;
         return;
     }
     
@@ -116,6 +117,9 @@ void Grid::UpdateTails()
     }
     //cout << "final: y-x : " << locy << locx << endl;
     //cout << scanx << " " << scany << endl;
+    // if heads moves onto tails, it changes tails' value to 4.
+    //  therefore, tails will see that heads is in range and not move
+    //  once heads moves again, it changes tails' value back to 2, and then another value
     //heads must be found, or code is wrong elsewhere
     //here come lots of ifs/switch statements
     if (locx == this->tailx) {
@@ -291,4 +295,4 @@ int main ()
     return 0;
 }
 
-//first guess: 3118
+//first guess: 3118 - too low
