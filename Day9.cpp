@@ -269,8 +269,13 @@ int main ()
         spaces.clear();
         move = 0;
         char d = instructions[z][0];
-        spaces << instructions[z][2];
+        if (instructions[z].length() > 3) {
+            spaces << instructions[z].substr(2,2);
+        }else{
+            spaces << instructions[z][2];
+        }
         spaces >> move;
+        cout << move << endl;
         for (int ct = 0; ct < move; ct++) {
             puzzle.UpdateHeads(d);
             puzzle.UpdateTails();
@@ -296,3 +301,4 @@ int main ()
 }
 
 //first guess: 3118 - too low
+//6266 - I hadn't accounted for double digits in the input and was only capturing the 3rd index char
