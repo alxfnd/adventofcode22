@@ -6,21 +6,256 @@
 #include <sstream>
 using namespace std;
 
-class Grid {
+int concat(int a, int b)
+{
+ 
+    // Convert both the integers to string
+    string s1 = to_string(a);
+    string s2 = to_string(b);
+ 
+    // Concatenate both strings
+    string s = s1 + s2;
+ 
+    // Convert the concatenated string
+    // to integer
+    int c = stoi(s);
+ 
+    // return the formed integer
+    return c;
+}
+
+class Rope {
     public:
-    int** Grid;
-    int headx;
-    int heady;
+    int* headx;
+    int* heady;
     int tailx;
     int taily;
-    void UpdateHeads(char dir);
+    vector<int> visits;
+    Rope(int& hy, int& hx);
+    void LookForHeads(int** Grid, int c);
     void UpdateTails();
 };
 
-void Grid::UpdateHeads(char dir)
+Rope::Rope(int& hy, int& hx)
 {
-    int newy = this->heady;
-    int newx = this->headx;
+    this->heady = &hy;
+    this->headx = &hx;
+    taily = *this->heady;
+    tailx = *this->headx;
+    this->visits.push_back((taily * tailx));
+}
+
+void Rope::LookForHeads(int** Grid, int c)
+{
+    //using more variables because using the same ones keeps breaking
+    int locx = 0;
+    int locy = 0;
+    //check if heads is in range
+    bool inrange = false;
+    int scanx = (this->tailx - 1);
+    int scany = (this->taily - 1);
+    while (scany < (this->taily + 2)) {
+        int scanx = (this->tailx - 1);
+        while (scanx < (this->tailx + 2)) {
+            if (Grid[scany][scanx] == 1) {
+                inrange = true;
+                break;
+            }
+            scanx++;
+        }
+        if (inrange == true) {
+            break;
+        }
+        scany++;
+    }
+    if (inrange == true) {
+        //doesn't move
+        return;
+    }
+    
+    //heads is not in range - tails must move
+    //determine location
+    bool found = false;
+    scanx = (this->tailx - 2);
+    scany = (this->taily - 2);
+    while (scany != (this->taily + 3)) {
+        int scanx = (this->tailx - 2);
+        while (scanx != (this->tailx + 3)) {
+            if (Grid[scany][scanx] == 1) {
+                locx = scanx;
+                locy = scany;
+                found = true;
+                break;
+            }
+            scanx++;
+        }
+        if (found == true) {
+            break;
+        }
+        scany++;
+    }
+    //heads must be found, or code is wrong elsewhere
+    //here come lots of ifs/switch statements
+    if (locx == this->tailx) {
+        //heads is directly up or down
+        if (locy > this->taily) {
+            this->taily++;
+        }else{
+            this->taily--;
+        }
+        this->visits.push_back(concat(taily, tailx));
+        return;
+    }
+    if (locy == this->taily) {
+        //heads is directly left or right
+        if (locx > this->tailx) {
+            this->tailx++;
+        }else{
+            this->tailx--;
+        }
+        this->visits.push_back(concat(taily, tailx));
+        return;
+    }
+    //if here, heads is diagonally elsewhere
+    if (locy > this->taily) {
+        if (locx > this->tailx) {
+            this->tailx++;
+            this->taily++;
+            this->visits.push_back(concat(taily, tailx));
+            return;
+        }else{
+            this->tailx--;
+            this->taily++;
+            this->visits.push_back(concat(taily, tailx));
+            return;
+        }
+    }else{
+        if (locx > this->tailx) {
+            this->tailx++;
+            this->taily--;
+            this->visits.push_back(concat(taily, tailx));
+            return;
+        }else{
+            this->tailx--;
+            this->taily--;
+            this->visits.push_back(concat(taily, tailx));
+            return;
+        }
+    }
+    cout << "you should not be here";
+}
+
+void Rope::UpdateTails()
+{
+    //using more variables because using the same ones keeps breaking
+    int locx = 0;
+    int locy = 0;
+    //check if heads is in range
+    bool inrange = false;
+    int scanx = (this->tailx - 1);
+    int scany = (this->taily - 1);
+    while (scany < (this->taily + 2)) {
+        int scanx = (this->tailx - 1);
+        while (scanx < (this->tailx + 2)) {
+            if (*this->headx == scanx && *this->heady == scany) {
+                inrange = true;
+                break;
+            }
+            scanx++;
+        }
+        if (inrange == true) {
+            break;
+        }
+        scany++;
+    }
+    if (inrange == true) {
+        //doesn't move
+        return;
+    }
+    
+    //heads is not in range - tails must move
+    //determine location
+    bool found = false;
+    scanx = (this->tailx - 2);
+    scany = (this->taily - 2);
+    while (scany != (this->taily + 3)) {
+        int scanx = (this->tailx - 2);
+        while (scanx != (this->tailx + 3)) {
+            if (*this->headx == scanx && *this->heady == scany) {
+                locx = scanx;
+                locy = scany;
+                found = true;
+                break;
+            }
+            scanx++;
+        }
+        if (found == true) {
+            break;
+        }
+        scany++;
+    }
+    //heads must be found, or code is wrong elsewhere
+    if (locx == this->tailx) {
+        //heads is directly up or down
+        if (locy > this->taily) {
+            this->taily++;
+        }else{
+            this->taily--;
+        }
+        this->visits.push_back(concat(taily, tailx));
+        return;
+    }
+    if (locy == this->taily) {
+        //heads is directly left or right
+        if (locx > this->tailx) {
+            this->tailx++;
+        }else{
+            this->tailx--;
+        }
+        this->visits.push_back(concat(taily, tailx));
+        return;
+    }
+    //if here, heads is diagonally elsewhere
+    if (locy > this->taily) {
+        if (locx > this->tailx) {
+            this->tailx++;
+            this->taily++;
+            this->visits.push_back(concat(taily, tailx));
+            return;
+        }else{
+            this->tailx--;
+            this->taily++;
+            this->visits.push_back(concat(taily, tailx));
+            return;
+        }
+    }else{
+        if (locx > this->tailx) {
+            this->tailx++;
+            this->taily--;
+            this->visits.push_back(concat(taily, tailx));
+            return;
+        }else{
+            this->tailx--;
+            this->taily--;
+            this->visits.push_back(concat(taily, tailx));
+            return;
+        }
+    }
+    cout << "you should not be here";
+}
+
+class Grid {
+    public:
+    int** Grid;
+    int positionx;
+    int positiony;
+    void UpdatePosition(char dir);
+};
+
+void Grid::UpdatePosition(char dir)
+{
+    int newy = this->positiony;
+    int newx = this->positionx;
     switch (dir) {
         case 'U':
             newy -= 1;
@@ -35,140 +270,11 @@ void Grid::UpdateHeads(char dir)
             newy += 1;
             break;
     }
-    //cout << this->heady << " :hy: " << newy << endl;
-    //cout << this->headx << " :hx: " << newx << endl;
-    //cout << this->taily << " :t: " << this->tailx << endl;
-
-    // check if new space has already been visited by Tails
-    if (this->Grid[newy][newx] == 2) {
-        this->Grid[newy][newx] = 4;
-    }else{
-        //heads is now in an unvisited space
-        this->Grid[newy][newx] = 3;
-    }
-
-    // replace old space based on heads value (which determines if it has already been visited)
-    if (this->Grid[heady][headx] == 4) {
-        this->Grid[heady][headx] = 2;
-    }
-    if (this->Grid[heady][headx] == 3) {
-        this->Grid[heady][headx] = 1;
-    }
-    this->headx = newx;
-    this->heady = newy;
-}
-
-void Grid::UpdateTails()
-{
-    //using more variables because using the same ones keeps breaking
-    int locx = 0;
-    int locy = 0;
-    //check if heads is in range
-    bool inrange = false;
-    int scanx = (this->tailx - 1);
-    int scany = (this->taily - 1);
-    while (scany < (this->taily + 2)) {
-        //cout << scany << "..." << scanx << endl;
-        int scanx = (this->tailx - 1);
-        while (scanx < (this->tailx + 2)) {
-            //cout << scany << "..." << scanx << endl;
-            //cout << this->Grid[scany][scanx];
-            if (this->Grid[scany][scanx] == 3 || this->Grid[scany][scanx] == 4) {
-                //cout << "in range" << endl;
-                inrange = true;
-                break;
-            }
-            scanx++;
-        }
-        if (inrange == true) {
-            break;
-        }
-        scany++;
-    }
-    if (inrange == true) {
-        this->Grid[taily][tailx] = 2;
-        return;
-    }
-    
-    //heads is not in range - tails must move
-    //determine location
-    bool found = false;
-    scanx = (this->tailx - 2);
-    scany = (this->taily - 2);
-    while (scany != (this->taily + 3)) {
-        int scanx = (this->tailx - 2);
-        while (scanx != (this->tailx + 3)) {
-            //cout << scany << "..." << scanx << endl;
-            if (this->Grid[scany][scanx] == 3 || this->Grid[scany][scanx] == 4) {
-                //cout << "found it!" << endl;
-                locx = scanx;
-                locy = scany;
-                //cout << "final: y-x : " << locy << locx << endl;
-                found = true;
-                break;
-            }
-            scanx++;
-        }
-        if (found == true) {
-            //cout << "final: y-x : " << locy << locx << endl;
-            break;
-        }
-        scany++;
-    }
-    //cout << "final: y-x : " << locy << locx << endl;
-    //cout << scanx << " " << scany << endl;
-    // if heads moves onto tails, it changes tails' value to 4.
-    //  therefore, tails will see that heads is in range and not move
-    //  once heads moves again, it changes tails' value back to 2, and then another value
-    //heads must be found, or code is wrong elsewhere
-    //here come lots of ifs/switch statements
-    if (locx == this->tailx) {
-        //heads is directly up or down
-        if (locy > this->taily) {
-            this->taily++;
-        }else{
-            this->taily--;
-        }
-        this->Grid[taily][tailx] = 2;
-        return;
-    }
-    if (locy == this->taily) {
-        //heads is directly left or right
-        if (locx > this->tailx) {
-            this->tailx++;
-        }else{
-            this->tailx--;
-        }
-        this->Grid[taily][tailx] = 2;
-        return;
-    }
-    //if here, heads is diagonally elsewhere
-    if (locy > this->taily) {
-        if (locx > this->tailx) {
-            this->tailx++;
-            this->taily++;
-            this->Grid[taily][tailx] = 2;
-            return;
-        }else{
-            this->tailx--;
-            this->taily++;
-            this->Grid[taily][tailx] = 2;
-            return;
-        }
-    }else{
-        if (locx > this->tailx) {
-            this->tailx++;
-            this->taily--;
-            this->Grid[taily][tailx] = 2;
-            return;
-        }else{
-            this->tailx--;
-            this->taily--;
-            this->Grid[taily][tailx] = 2;
-            return;
-        }
-    }
-    cout << "you should not be here";
+    this->Grid[this->positiony][this->positionx] = 0;
+    this->positionx = newx;
+    this->positiony = newy;
+    this->Grid[this->positiony][this->positionx] = 1;
+    return;
 }
 
 int size(vector<string> command, int direction) {
@@ -212,10 +318,8 @@ int size(vector<string> command, int direction) {
         forward++;
     }
     //plus 10 = wiggle room to not break the scan loops in UpdateTails()
-    return (backward + forward + 10);
+    return (backward + forward + 20);
 }
-
-//Collect instructions into a vector for re-use
 
 fstream Advent(".\\Day9.txt", ios::in | ios::out);
 vector<string> instructions;
@@ -241,28 +345,25 @@ int main ()
     for (int i = 0; i < height; i++) {
         puzzle.Grid[i] = new int[width];
     }
-    //fill all values with 1 (not visited)
     for (int i = 0; i < height; i++) {
         for (int w = 0; w < width; w++) {
-            puzzle.Grid[i][w] = 1;
+            puzzle.Grid[i][w] = 0;
         }
     }
 
     //starting location - note: forced an even number in the function above
     int startx = (width / 2);
     int starty = (height / 2);
-    puzzle.headx = startx;
-    puzzle.heady = starty;
-    puzzle.tailx = startx;
-    puzzle.taily = starty;
-    puzzle.Grid[puzzle.taily][puzzle.tailx] = 0;
+    puzzle.Grid[starty][startx] = 1;
+    puzzle.positionx = startx;
+    puzzle.positiony = starty;
 
-    //now what.
-    // use 0s and 2s to determine where 
-    // HEADS will use a 3 on unvisited spots - not divisible by 2
-    // and HEADS will use a 4 on visited spots
-    // TAILS will use a 2 - divisible by 2
-    //
+    vector<Rope*> Ropes;
+    Ropes.push_back(new Rope(puzzle.positiony, puzzle.positionx));
+    for (int i = 1; i < 9; i++) {
+        Ropes.push_back(new Rope(Ropes[i-1]->taily, Ropes[i-1]->tailx));
+    }
+    
     stringstream spaces;
     int move = 0;
     for (int z = 0; z < instructions.size(); z++) {
@@ -277,28 +378,29 @@ int main ()
         spaces >> move;
         cout << move << endl;
         for (int ct = 0; ct < move; ct++) {
-            puzzle.UpdateHeads(d);
-            puzzle.UpdateTails();
-        }
-    }
-
-
-    // calculate how many places it visited
-    int visited = 0;
-    int check = 0;
-    for (int i = 0; i < height; i++) {
-        for (int w = 0; w < width; w++) {
-            check = (puzzle.Grid[i][w] % 2);
-            //cout << puzzle.Grid[i][w];
-            if (check == 0) {
-                visited++;
+            puzzle.UpdatePosition(d);
+            Ropes[0]->LookForHeads(puzzle.Grid, 0);
+            for (int i = 1; i < Ropes.size(); i++) {
+                Ropes[i]->UpdateTails();
             }
         }
-        //cout << endl;
     }
-    cout << visited;
+    /*
+    //cout << *Ropes[0]->headx << endl;
+    //cout << *Ropes[8]->headx << endl;
+    cout << Ropes[0]->visits.size() << endl;
+    sort(Ropes[0]->visits.begin(),Ropes[0]->visits.end());
+    Ropes[0]->visits.erase( unique(Ropes[0]->visits.begin(), Ropes[0]->visits.end()), Ropes[0]->visits.end());
+    //auto it = unique(Rope1.visits.begin(),Rope1.visits.end());
+    //Rope1.visits.resize(distance(Rope1.visits.begin(), it));
+    cout << Ropes[0]->visits.size();
+    */
+    cout << Ropes[8]->visits.size() << endl;
+    sort(Ropes[8]->visits.begin(),Ropes[8]->visits.end());
+    Ropes[8]->visits.erase( unique(Ropes[8]->visits.begin(), Ropes[8]->visits.end()), Ropes[8]->visits.end());
+    //auto it = unique(Rope1.visits.begin(),Rope1.visits.end());
+    //Rope1.visits.resize(distance(Rope1.visits.begin(), it));
+    cout << Ropes[8]->visits.size();
+    
     return 0;
 }
-
-//first guess: 3118 - too low
-//6266 - I hadn't accounted for double digits in the input and was only capturing the 3rd index char
