@@ -12,12 +12,12 @@ enum Math {PLUS, MULTIPLY};
 class Item
 {
     public:
-    int id;
-    int worry;
-    Item(int id, int worry);
+    long long id;
+    long long worry;
+    Item(int id, long long worry);
 };
 
-Item::Item(int id, int worry)
+Item::Item(int id, long long worry)
 {
     this->id = id;
     this->worry = worry;
@@ -34,10 +34,10 @@ class Monkey
     int truemonkey;
     int falsemonkey;
     vector<Item*> items;
-    int Operation(int item);
-    int GetWorry();
-    void SetWorry(int position, int worry);
-    bool TestItem(int item);
+    long long Operation(long long item);
+    long long GetWorry();
+    void SetWorry(int position, long long worry);
+    bool TestItem(long long item);
     void ThrowItem(Turn& turn, bool test);
     Monkey(int itrue, int ifalse, Math math, int value, int test, int id);
 };
@@ -49,42 +49,82 @@ Monkey::Monkey(int itrue, int ifalse, Math math, int value, int test, int id)
     this->OpMath = math;
     this->OpValue = value;
     this->TestValue = test;
+    this->id = id;
 }
 
-int Monkey::GetWorry()
+long long Monkey::GetWorry()
 {
     return this->items[0]->worry;
 }
 
-void Monkey::SetWorry(int position, int worry)
+void Monkey::SetWorry(int position, long long worry)
 {
     this->items[position]->worry = worry;
 }
 
-bool Monkey::TestItem(int item)
+bool Monkey::TestItem(long long item)
 {
+    //float tval = item;
+    //cout << (tval / this->TestValue) << endl;
+    //cout << "Is item divisible by " << this->TestValue;
+    
     if ((item % this->TestValue) == 0) {
+        //cout << ": Yes" << endl;
         return true;
     }else{
+        //cout << ": No" << endl;
         return false;
     }
 }
 
-int Monkey::Operation(int item)
+long long Monkey::Operation(long long item)
 {
+    //cout << "This items level is: " << item;
     switch (this->OpMath)
     {
         case Math::PLUS:
             if (this->OpValue == -1) {
-                return floor((item + item) / 3);
+                if (((item + item) / 3) != floor((item + item) / 3)) {
+                    cout << "Monkey: " << this->id << endl;
+                    cout << "DOES NOT MATCH" << endl;
+                    cout << "long long value =" << ((item + item) / 3) << endl;
+                    cout << "Floor value = " << floor((item + item) / 3) << endl;
+                }
+                //return floor((item + item) / 3);
+                item += item;
+                return (item / 3);
             }else{
-                return floor((item + this->OpValue) / 3);
+                if (((item + this->OpValue) / 3) != floor((item + this->OpValue) / 3)) {
+                    cout << "Monkey: " << this->id << endl;
+                    cout << "DOES NOT MATCH" << endl;
+                    cout << "long long value =" << ((item + this->OpValue) / 3) << endl;
+                    cout << "Floor value = " << floor((item + this->OpValue) / 3) << endl;
+                }
+                //return floor((item + this->OpValue) / 3);
+                item += OpValue;
+                return (item / 3);
             }
         case Math::MULTIPLY:
             if (this->OpValue == -1) {
-                return floor((item * item) / 3);
+                if (((item * item) / 3) != floor((item * item) / 3)) {
+                    cout << "Monkey: " << this->id << endl;
+                    cout << "DOES NOT MATCH" << endl;
+                    cout << "long long value =" << ((item * item) / 3) << endl;
+                    cout << "Floor value = " << floor((item * item) / 3) << endl;
+                }
+                //return floor((item * item) / 3);
+                item *= item;
+                return (item / 3);
             }else{
-                return floor((item * this->OpValue) / 3);
+                if (((item * this->OpValue) / 3) != floor((item * this->OpValue) / 3)) {
+                    cout << "Monkey: " << this->id << endl;
+                    cout << "DOES NOT MATCH" << endl;
+                    cout << "long long value =" << ((item * this->OpValue) / 3) << endl;
+                    cout << "Floor value = " << floor((item * this->OpValue) / 3) << endl;
+                }
+                //return floor((item * this->OpValue) / 3);
+                item *= OpValue;
+                return (item / 3);
             }
     }
     throw new exception();
@@ -93,7 +133,7 @@ int Monkey::Operation(int item)
 class Turn
 {
     public:
-    int rounds = 0;
+    int rounds = 1;
     int counter = 0;
     vector<Monkey*> Monkeys;
     void MoveCounter();
@@ -101,11 +141,20 @@ class Turn
 
 void Turn::MoveCounter()
 {
+    //cout << "Monkey " << this->Monkeys[counter]->id;
+    //cout << " inspected " << this->Monkeys[this->counter]->inspections;
+    //cout << " items." << endl;
+    
     this->counter++;
     if (this->counter == 8) {
         this->counter = 0;
         this->rounds++;
+        cout << "Round: " << rounds << endl;
     }
+    
+    //cout << "Monkey " << counter;
+    //cout << " has " << this->Monkeys[this->counter]->items.size();
+    //cout << " items." << endl;
     return;
 }
 
@@ -195,22 +244,25 @@ int main ()
     
     int currentitems = 0;
 
-    while (turn.rounds < 20) {
+    while (turn.rounds < 21) {
         currentitems = turn.Monkeys[turn.counter]->items.size();
         for (int i = 0; i < currentitems; i++) {
-            int cur_worry = 0;
+            long long cur_worry = 0;
             bool test;
             // Monkey inspects, increases worry level, gets bored, decreases worry level
             turn.Monkeys[turn.counter]->inspections++;
             cur_worry = turn.Monkeys[turn.counter]->GetWorry();
+            cout << "Retrieved this worry with value: " << cur_worry << endl;
             cur_worry = turn.Monkeys[turn.counter]->Operation(cur_worry);
+            cout << "Operation value: " << cur_worry << endl;
             // Is worry level divisible by Monkey's test value
             test = turn.Monkeys[turn.counter]->TestItem(cur_worry);
             // Set new worry level on item
             turn.Monkeys[turn.counter]->SetWorry(0, cur_worry);
-            //cout << "New worry level = " << turn.Monkeys[turn.counter]->GetWorry() << endl;
+            cout << "New worry level = " << turn.Monkeys[turn.counter]->GetWorry() << endl;
             // Throw to Monkey
             turn.Monkeys[turn.counter]->ThrowItem(turn, test);
+            //cin.get();
         }
         //cout << "Next Monkey" << endl;
         //cout << turn.rounds << endl;
@@ -233,3 +285,5 @@ int main ()
 }
 
 //first answer: 121103 - too high (349 * 347)
+//second answer: 105950 - too low (326 * 325)
+// 120756 - too high (348 * 347)
