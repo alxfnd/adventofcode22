@@ -187,7 +187,22 @@ int main()
     turn.Monkeys[7]->items.push_back(new Item(56));
     turn.Monkeys[7]->items.push_back(new Item(89));
 
-    turn.Part1();
+    /*
+    for(int i = 0; i < 8; i++) {
+        cout << "Math: " <<turn.Monkeys[i]->OpMath << endl;
+        cout << "Math Value: " << turn.Monkeys[i]->OpValue << endl;
+        cout << "Test Value: " << turn.Monkeys[i]->TestValue << endl;
+        cout << "True: " << turn.Monkeys[i]->TrueMonkey << endl;
+        cout << "False: " << turn.Monkeys[i]->FalseMonkey << endl;
+        cout << "Inspects: " << turn.Monkeys[i]->inspections << endl;
+        for (int m = 0; m < turn.Monkeys[i]->items.size(); m++) {
+            cout << m << " item: " << turn.Monkeys[i]->items[m]->worry << endl;
+        }
+        cout << endl;
+    }
+    */
+
+    //turn.Part1();
 
     return 0;
 }
