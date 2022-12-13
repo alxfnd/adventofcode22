@@ -49,12 +49,10 @@ void Monkey::TakeTurn(vector<Monkey*>& Monkeys) {
     int count = this->items.size();
     for (int i = 0; i < count; i++) {
         int worry = (int)this->items[0]->worry;
-        //cout << "Item: " << worry << endl;
         worry = this->Inspect(worry);
         this->inspections++;
         worry = (int)floor(worry / 3);
         this->items[0]->worry = worry;
-        //cout << "New item: " << worry << endl;
         this->Throw(Monkeys);
     }
 }
